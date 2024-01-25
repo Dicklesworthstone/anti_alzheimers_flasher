@@ -1,9 +1,7 @@
-use cpal::{Stream, StreamConfig};
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use wgpu::{Device, Features, Limits, Queue, Surface, SwapChainDescriptor, TextureFormat};
-use wgpu::util::DeviceExt;
+use cpal::{Stream, StreamConfig, traits::{DeviceTrait, HostTrait, StreamTrait}};
+use wgpu::{Device, Features, Limits, Queue, Surface, TextureUsage, Color, util::DeviceExt};
 use winit::{
-    event::{Event, WindowEvent, KeyboardInput, ElementState},
+    event::{Event, WindowEvent, ElementState, VirtualKeyCode, KeyEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder, Fullscreen},
 };
@@ -15,12 +13,10 @@ const COLOR1: Color = Color::BLACK; // Can be set to other colors like Color::BL
 const COLOR2: Color = Color::WHITE; // Can be set to other colors like Color::RED
 
 struct GraphicsContext {
-    surface: Surface,
+    surface: Surface<'_>, // Adjust the lifetime specifier as needed
     device: Device,
     queue: Queue,
-    sc_desc: SwapChainDescriptor,
 }
-
 
 impl GraphicsContext {
     async fn new(window: &Window) -> Self {
@@ -34,29 +30,25 @@ impl GraphicsContext {
             force_fallback_adapter: false,
         }).await.unwrap();
 
-        // Update the device request with required features and limits
         let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
-                label: None, // Or a specific label if desired
-                required_features: Features::empty(), // Adjust as needed for your application
-                required_limits: Limits::downlevel_webgl2_defaults(), // Or Limits::default() or other specific limits
-            }, 
-            None, // Trace path
+                label: None,
+                required_features: Features::empty(),
+                required_limits: Limits::downlevel_webgl2_defaults(),
+            },
+            None,
         ).await.unwrap();
 
-        let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
-            format: adapter.get_swap_chain_preferred_format(&surface).unwrap(),
-            width: size.width,
-            height: size.height,
-            present_mode: wgpu::PresentMode::Fifo,
-        };
+        // Use get_default_config for setting up the surface
+        let config = surface.get_default_config(&adapter, size.width, size.height)
+            .expect("Failed to get default surface configuration");
+
+        surface.configure(&device, &config);
 
         Self {
             surface,
             device,
             queue,
-            sc_desc,
         }
     }
 
@@ -152,6 +144,7 @@ fn write_sine_wave(output: &mut [f32], channels: usize, sample_rate: f32, freque
     }
 }
 
+
 #[tokio::main]
 async fn main() {
     let event_loop = EventLoop::new();
@@ -166,6 +159,7 @@ async fn main() {
     audio_context.play_audio();
 
     let mut is_white = false;
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
 
@@ -174,27 +168,33 @@ async fn main() {
                 event: WindowEvent::CloseRequested,
                 ..
             } => *control_flow = ControlFlow::Exit,
+
             Event::WindowEvent {
                 event: WindowEvent::KeyboardInput {
                     event: KeyEvent {
                         state: ElementState::Pressed,
-                        virtual_keycode: Some(keycode),
+                        logical_key,
                         ..
                     },
                     ..
                 },
                 ..
-            } => match keycode {
-                VirtualKeyCode::Escape => *control_flow = ControlFlow::Exit,
-                _ => {}
+            } => {
+                if let Some(key) = logical_key.to_logical_key() {
+                    match key {
+                        VirtualKeyCode::Escape => *control_flow = ControlFlow::Exit,
+                        _ => {}
+                    }
+                }
             },
+
             Event::MainEventsCleared => {
                 window.request_redraw();
-            }
+            },
             Event::RedrawRequested(_) => {
                 graphics_context.update_screen(is_white);
                 is_white = !is_white;
-            }
+            },
             _ => {}
         }
     });
