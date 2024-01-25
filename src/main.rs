@@ -1,5 +1,4 @@
-use cpal::{Stream, StreamConfig, traits::{DeviceTrait, HostTrait, StreamTrait}};
-use wgpu::{Device, Features, Limits, Queue, Surface, TextureUsages, Color, util::DeviceExt};
+use wgpu::{Device, Features, Limits, Queue, Surface, Color};
 use winit::{
     event::{Event, WindowEvent, ElementState, VirtualKeyCode, KeyEvent},
     event_loop::{ControlFlow, EventLoop},
@@ -12,19 +11,17 @@ const FREQUENCY: f32 = 40.0;  // Frequency of 40Hz
 const COLOR1: Color = Color::BLACK; // Can be set to other colors like Color::BLUE
 const COLOR2: Color = Color::WHITE; // Can be set to other colors like Color::RED
 
-
-struct GraphicsContext<'a> {
-    surface: Surface<'a>,
+struct GraphicsContext {
+    surface: Surface,
     device: Device,
     queue: Queue,
+    config: wgpu::SurfaceConfiguration,
 }
 
-impl<'a> GraphicsContext<'a> {
-    async fn new(window: &'a Window) -> Self {
-        let size = window.inner_size();
+impl GraphicsContext {
+    async fn new(window: &Window) -> Self {
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
-        let surface = unsafe { instance.create_surface(window) }.expect("Failed to create surface");
-
+        let surface = unsafe { instance.create_surface(window) };
         let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::HighPerformance,
             compatible_surface: Some(&surface),
@@ -35,62 +32,67 @@ impl<'a> GraphicsContext<'a> {
             &wgpu::DeviceDescriptor {
                 label: None,
                 required_features: Features::empty(),
-                required_limits: Limits::downlevel_webgl2_defaults(),
+                required_limits: Limits::default(),
             },
             None,
         ).await.unwrap();
 
-        // Use get_default_config for setting up the surface
-        let config = surface.get_default_config(&adapter, size.width, size.height)
-            .expect("Failed to get default surface configuration");
-
+        let size = window.inner_size();
+        let config = wgpu::SurfaceConfiguration {
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            format: surface.get_supported_formats(&adapter)[0],
+            width: size.width,
+            height: size.height,
+            present_mode: wgpu::PresentMode::Fifo,
+            desired_maximum_frame_latency: 1,
+            alpha_mode: wgpu::AlphaMode::Opaque,
+            view_formats: None,
+        };
         surface.configure(&device, &config);
 
         Self {
             surface,
             device,
             queue,
+            config,
         }
     }
 
     pub fn update_screen(&mut self, use_color1: bool) {
-            let frame = match self.surface.get_current_texture() {
+        let frame = match self.surface.get_current_texture() {
             Ok(frame) => frame,
             Err(e) => {
                 eprintln!("Failed to acquire next swap chain texture: {:?}", e);
                 return;
             }
         };
-    
+
         let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
-    
+
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Render Encoder"),
         });
-    
-        {
-            let color_attachment = wgpu::RenderPassColorAttachment {
+
+        let render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            timestamp_writes: false,
+            occlusion_query_set: None,
+            label: Some("Render Pass"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &view,
-                resolve_target: None,  // Set to None or another texture view if using multisampling
+                resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(if use_color1 { COLOR1 } else { COLOR2 }),
-                    store: wgpu::StoreOp::Store, // Changed to StoreOp::Store
+                    store: wgpu::StoreOp::Store,
                 },
-            };
-    
-            let render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass"),
-                color_attachments: &[Some(color_attachment)], // Note the use of Some() and array
-                depth_stencil_attachment: None,
-                timestamp_writes: None, // Add if using timestamp query features
-                occlusion_query_set: None, // Add if using occlusion query features
-            });
-        }
-    
+            })],
+            depth_stencil_attachment: None,
+        });
+
+        drop(render_pass);
+
         self.queue.submit(std::iter::once(encoder.finish()));
         frame.present();
     }
-    
 }
 
 struct AudioContext {
@@ -145,6 +147,7 @@ fn write_sine_wave(output: &mut [f32], channels: usize, sample_rate: f32, freque
     }
 }
 
+
 #[tokio::main]
 async fn main() {
     let event_loop = EventLoop::new().expect("Failed to create event loop");
@@ -173,14 +176,19 @@ async fn main() {
                 event: WindowEvent::KeyboardInput {
                     event: KeyEvent {
                         state: ElementState::Pressed,
+                        logical_key,
                         ..
                     },
                     ..
                 },
                 ..
             } => {
-                // Exit the program when any key is pressed
-                *control_flow = ControlFlow::Exit;
+                if let Some(key) = logical_key.to_logical_key() {
+                    match key {
+                        VirtualKeyCode::Escape => *control_flow = ControlFlow::Exit,
+                        _ => {}
+                    }
+                }
             },
 
             Event::MainEventsCleared => {
