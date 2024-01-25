@@ -1,6 +1,6 @@
 use wgpu::{Device, Features, Limits, Queue, Surface, Color};
 use winit::{
-    event::{Event, WindowEvent, ElementState, VirtualKeyCode, KeyEvent},
+    event::{Event, WindowEvent, ElementState, KeyEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder, Fullscreen},
 };
@@ -45,7 +45,7 @@ impl GraphicsContext {
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
             desired_maximum_frame_latency: 1,
-            alpha_mode: wgpu::AlphaMode::Opaque,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
             view_formats: None,
         };
         surface.configure(&device, &config);
