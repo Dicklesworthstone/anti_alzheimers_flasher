@@ -1,5 +1,5 @@
 use cpal::{Stream, StreamConfig, traits::{DeviceTrait, HostTrait, StreamTrait}};
-use wgpu::{Device, Features, Limits, Queue, Surface, TextureUsage, Color, util::DeviceExt};
+use wgpu::{Device, Features, Limits, Queue, Surface, TextureUsages, Color, util::DeviceExt};
 use winit::{
     event::{Event, WindowEvent, ElementState, VirtualKeyCode, KeyEvent},
     event_loop::{ControlFlow, EventLoop},
@@ -12,17 +12,18 @@ const FREQUENCY: f32 = 40.0;  // Frequency of 40Hz
 const COLOR1: Color = Color::BLACK; // Can be set to other colors like Color::BLUE
 const COLOR2: Color = Color::WHITE; // Can be set to other colors like Color::RED
 
-struct GraphicsContext {
-    surface: Surface<'_>, // Adjust the lifetime specifier as needed
+
+struct GraphicsContext<'a> {
+    surface: Surface<'a>,
     device: Device,
     queue: Queue,
 }
 
-impl GraphicsContext {
-    async fn new(window: &Window) -> Self {
+impl<'a> GraphicsContext<'a> {
+    async fn new(window: &'a Window) -> Self {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
-        let surface = unsafe { instance.create_surface(window) };
+        let surface = unsafe { instance.create_surface(window) }.expect("Failed to create surface");
 
         let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::HighPerformance,
@@ -53,7 +54,7 @@ impl GraphicsContext {
     }
 
     pub fn update_screen(&mut self, use_color1: bool) {
-        let frame = match self.surface.get_current_texture() {
+            let frame = match self.surface.get_current_texture() {
             Ok(frame) => frame,
             Err(e) => {
                 eprintln!("Failed to acquire next swap chain texture: {:?}", e);
@@ -73,7 +74,7 @@ impl GraphicsContext {
                 resolve_target: None,  // Set to None or another texture view if using multisampling
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(if use_color1 { COLOR1 } else { COLOR2 }),
-                    store: true,
+                    store: wgpu::StoreOp::Store, // Changed to StoreOp::Store
                 },
             };
     
@@ -144,14 +145,13 @@ fn write_sine_wave(output: &mut [f32], channels: usize, sample_rate: f32, freque
     }
 }
 
-
 #[tokio::main]
 async fn main() {
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().expect("Failed to create event loop");
     let window = WindowBuilder::new()
         .with_fullscreen(Some(Fullscreen::Borderless(None)))
         .build(&event_loop)
-        .unwrap();
+        .expect("Failed to build window");
 
     let mut graphics_context = GraphicsContext::new(&window).await;
     let audio_context = AudioContext::new();
@@ -173,19 +173,14 @@ async fn main() {
                 event: WindowEvent::KeyboardInput {
                     event: KeyEvent {
                         state: ElementState::Pressed,
-                        logical_key,
                         ..
                     },
                     ..
                 },
                 ..
             } => {
-                if let Some(key) = logical_key.to_logical_key() {
-                    match key {
-                        VirtualKeyCode::Escape => *control_flow = ControlFlow::Exit,
-                        _ => {}
-                    }
-                }
+                // Exit the program when any key is pressed
+                *control_flow = ControlFlow::Exit;
             },
 
             Event::MainEventsCleared => {
