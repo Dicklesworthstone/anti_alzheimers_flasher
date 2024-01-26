@@ -5,34 +5,58 @@
     <style>
         body, canvas { margin: 0; padding: 0; width: 100%; height: 100%; display: block; }
         canvas { background: black; }
+        #startButton { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
+    <button id="startButton">Start</button>
     <script>
-        // Canvas setup
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // Audio setup
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(40, audioCtx.currentTime); // 40Hz frequency
-        oscillator.connect(audioCtx.destination);
-        oscillator.start();
+        let audioCtx, oscillator, flashInterval;
 
-        // Flashing logic
-        let flash = false;
-        setInterval(() => {
-            ctx.fillStyle = flash ? 'black' : 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            flash = !flash;
-        }, 1000 / 80); // 40Hz flash, so 80 toggles per second
+        function startAudioVisual() {
+            // Hide the button
+            startButton.style.display = 'none';
 
-        // Resizing
+            // Audio setup
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(40, audioCtx.currentTime); // 40Hz frequency
+            oscillator.connect(audioCtx.destination);
+            oscillator.start();
+
+            // Flashing setup
+            let flash = false;
+            flashInterval = setInterval(() => {
+                ctx.fillStyle = flash ? 'black' : 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                flash = !flash;
+            }, 1000 / 80); // 40Hz flash
+
+            // Change button event listener to stop function
+            startButton.removeEventListener('click', startAudioVisual);
+            startButton.addEventListener('click', stopAudioVisual);
+            startButton.textContent = 'Stop';
+            startButton.style.display = 'block';
+        }
+
+        function stopAudioVisual() {
+            if (audioCtx) audioCtx.close();
+            clearInterval(flashInterval);
+            startButton.textContent = 'Start';
+            startButton.removeEventListener('click', stopAudioVisual);
+            startButton.addEventListener('click', startAudioVisual);
+        }
+
+        startButton.addEventListener('click', startAudioVisual);
+
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
