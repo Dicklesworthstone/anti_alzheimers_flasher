@@ -4,6 +4,11 @@
 
 This repository contains the source code for "Alzheimer's Buddy: 40Hz Therapy," a web-based application designed to explore the potential benefits of light and sound therapy at 40Hz for individuals with Alzheimer's disease, or as a preventative measure for those at risk of developing the disease. The application provides an immersive experience using flashing light and sound, along with informative content about the science and studies behind this innovative approach.
 
+![Illustration](https://github.com/Dicklesworthstone/anti_alzheimers_flasher/blob/main/illustration.png)
+
+## Warning!
+- **Potential Monitor Damage**: Some users have experienced issues after using this on certain types of monitors. In general these issue seem to resolve by unplugging the screen for a few minutes. If you have any concerns about this, you should instead try running it on a smartphone (like a recent iPhone) at [https://alzheimersbuddy.com](https://alzheimersbuddy.com/).
+
 ## Features
 
 - **Interactive Therapy**: Start and stop the 40Hz therapy session with a simple button click.
