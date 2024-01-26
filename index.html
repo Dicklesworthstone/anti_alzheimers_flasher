@@ -67,8 +67,20 @@
             background-color: #0056b3;
         }
         .warning {
-            color: red;
+            color: #D32F2F; /* A softer shade of red for readability */
             font-weight: 700;
+            background-color: #FFFDE7; /* Light yellow background for attention */
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: flex;
+            max-width: 600px; /* Limit the width of warning messages */
+            margin-left: auto; /* Center the warning horizontally */
+            margin-right: auto;            
+            align-items: center;
+            text-align: left;
+            border: 1px solid #FFC107; /* Subtle border */
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow */
         }
         .info {
             margin-top: 20px;
@@ -129,6 +141,11 @@
                 margin: 10px; /* Smaller margin on smaller screens */
             }
 
+            .warning {
+                font-size: 14px; /* Smaller font size for warnings */
+                padding: 8px; /* Slightly reduced padding */
+            }            
+
             .legal-disclaimer {
                 width: 100%; /* Use full width for smaller screens */
             }
@@ -178,10 +195,8 @@
             <li>If you have a sub-woofer, it can add yet another sensory modality—haptic (touch) feedback, also at 40Hz!</li>
         </ul>
         <p class="warning">WARNING: If you have epilepsy, or someone you live with does, be very careful using this!</p>
-        <p class="warning">WARNING: Some users have reported that their computer monitor acted weird after running this.</p> 
-        <p class="warning">If you have any doubts about this, you should use it on a smartphone instead!</p>
-        <p class="warning">I can verify that it works well on a recent iPhone without damage.</p>
-
+        <p class="warning">WARNING: Some users have reported that their computer monitor acted weird after running this, and if you have any doubts about this, you should use it on a smartphone instead! I can verify that it works well on a recent iPhone without damage.</p>
+    </div>
     </div>
     <div class="explanation">
             <h2>How it Might Work:</h2>
