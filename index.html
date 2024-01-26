@@ -99,6 +99,24 @@
             margin-bottom: 30px;
         }        
 
+        .legal-disclaimer {
+            background-color: #ffe5e5; /* Very light red for subtlety and attention */
+            color: #333333; /* Dark grey for readability */
+            font-weight: normal; /* Regular font weight for easier reading */
+            padding: 20px; /* Increased padding */
+            margin-top: 40px; /* Increased space from the content above */
+            margin-bottom: 40px; /* Increased space from the content below */
+            border: 2px solid #ff0000; /* Darker red border for visibility */
+            border-radius: 8px; /* Increased border radius for a softer look */
+            text-align: left; /* Left align text for traditional reading flow */
+            font-size: 14px; /* Maintain font size for readability */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Increased box shadow for depth */
+            width: 60%; /* Increased width */
+            margin-left: auto; /* Center align the box */
+            margin-right: auto; /* Center align the box */
+            line-height: 1.5; /* Increased line height for readability */
+        }
+        
         @media (max-width: 768px) {
             #content {
                 max-width: 100%; /* Use full width for smaller screens */
@@ -109,6 +127,10 @@
             .explanation {
                 padding: 10px; /* Smaller padding on smaller screens */
                 margin: 10px; /* Smaller margin on smaller screens */
+            }
+
+            .legal-disclaimer {
+                width: 100%; /* Use full width for smaller screens */
             }
     
             h1 {
@@ -198,6 +220,13 @@
         </ul>    
     </div>
 
+    <div class="legal-disclaimer">
+        <p class="warning" style="font-size: 24px; font-weight: bold; text-align: center;">DISCLAIMER</p>
+
+        <p>Disclaimer: The content on this website, including all text, graphics, images, and other material, is for informational purposes only and is not intended as medical advice, diagnosis, or treatment. This content is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay in seeking it because of something you have read on this website.</p>
+        <p>Reliance on any information provided by this website is solely at your own risk. The website owner, authors, editors, and affiliates are not responsible for any errors or omissions in any content herein, nor for any actions taken in reliance thereon. The website owner expressly disclaims all liability in respect to actions taken or not taken based on any or all the contents of this website.</p>
+        <p>The website owner does not warrant or guarantee the accuracy, completeness, adequacy, or currency of the information contained in or linked to this website. Your use of information on the website or materials linked from the website is at your own risk.</p>
+    </div>
     
 
     <canvas id="canvas"></canvas>
