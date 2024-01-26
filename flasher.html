@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>40Hz Flash and Tone</title>
+    <style>
+        body, canvas { margin: 0; padding: 0; width: 100%; height: 100%; display: block; }
+        canvas { background: black; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Audio setup
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(40, audioCtx.currentTime); // 40Hz frequency
+        oscillator.connect(audioCtx.destination);
+        oscillator.start();
+
+        // Flashing logic
+        let flash = false;
+        setInterval(() => {
+            ctx.fillStyle = flash ? 'black' : 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            flash = !flash;
+        }, 1000 / 80); // 40Hz flash, so 80 toggles per second
+
+        // Resizing
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
