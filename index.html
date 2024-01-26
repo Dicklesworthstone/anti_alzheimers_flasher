@@ -15,7 +15,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 200vh;
+            height: auto;
         }
         #content {
             max-width: 600px;
@@ -88,16 +88,51 @@
         }
 
         .explanation {
-            margin-top: 100px;
-            max-width: 1200px; /* Limiting the width for readability */
-            height: 2000px;
-            margin: auto; /* Centering the div */
+            max-width: 800px; /* Limit the width */
+            margin: auto; /* Center the div */
+            padding: 20px; /* Add padding */
             text-align: left;
         }
+
         .explanation h2 {
             font-size: 22px;
             margin-bottom: 30px;
         }        
+
+        @media (max-width: 768px) {
+            #content {
+                max-width: 100%; /* Use full width for smaller screens */
+                padding: 10px; /* Reduce padding */
+                margin: 10px 0; /* Adjust margin */
+            }
+    
+            .explanation {
+                padding: 10px; /* Smaller padding on smaller screens */
+                margin: 10px; /* Smaller margin on smaller screens */
+            }
+    
+            h1 {
+                font-size: 24px; /* Smaller font size for headers */
+            }
+    
+            p {
+                font-size: 14px; /* Smaller font size for paragraphs */
+            }
+    
+            .info {
+                padding: 10px; /* Reduce padding in the info section */
+            }
+    
+            .info h2, .explanation h2 {
+                font-size: 20px; /* Smaller font size for sub-headers */
+            }
+    
+            #startButton {
+                padding: 10px 20px; /* Smaller padding for the button */
+                font-size: 18px; /* Smaller font size for the button text */
+            }
+        }
+    
     </style>
 </head>
 <body>
